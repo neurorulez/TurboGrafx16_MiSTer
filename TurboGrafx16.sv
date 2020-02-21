@@ -117,6 +117,8 @@ module emu
 	// 1 - D-/TX
 	// 2..6 - USR2..USR6
 	// Set USER_OUT to 1 to read from USER_IN.
+    output  	  USER_OSD,	
+    output	  	  USER_MODE,
 	input   [6:0] USER_IN,
 	output  [6:0] USER_OUT,
 
@@ -134,7 +136,13 @@ localparam SP64     = 1'b0;
 `endif
 
 assign ADC_BUS  = 'Z;
-assign USER_OUT = '1;
+
+wire   JOY_CLK, JOY_LOAD;
+wire   JOY_DATA  = USER_IN[5];
+assign USER_OUT  = |status[31:30] ? {5'b11111,JOY_CLK,JOY_LOAD} : '1;
+assign USER_MODE = |status[31:30] ;
+assign USER_OSD  = joydb15_1[8] & joydb15_1[6];
+
 assign VGA_F1 = 0;
 assign {UART_RTS, UART_TXD, UART_DTR} = 0;
 assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
@@ -164,6 +172,7 @@ parameter CONF_STR = {
 	"O1,Aspect ratio,4:3,16:9;",
 	"O8A,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
 	"OH,Vertical blank,Normal,Reduced;",
+	"OUV,Serial SNAC DB15,Off,1 Player,2 Players;",
 `ifdef USE_SP64
 	"OB,Sprites per line,Std(16),All(64);",
 `endif
@@ -204,7 +213,7 @@ pll pll
 wire [31:0] status;
 wire  [1:0] buttons;
 
-wire [11:0] joystick_0, joystick_1, joystick_2, joystick_3, joystick_4;
+wire [11:0] joystick_0_USB, joystick_1_USB, joystick_2_USB, joystick_3_USB, joystick_4_USB;
 wire        ioctl_download;
 wire  [7:0] ioctl_index;
 wire        ioctl_wr;
@@ -227,6 +236,24 @@ wire [63:0] img_size;
 
 wire [21:0] gamma_bus;
 wire [15:0] sdram_sz;
+
+wire [11:0] joystick_0 = |status[31:30] ? {joydb15_1[11:10],joydb15_1[9],joydb15_1[7],joydb15_1[8],joydb15_1[6:0]} : joystick_0_USB;
+wire [11:0] joystick_1 =  status[31]    ? {joydb15_2[11:10],joydb15_2[9],joydb15_2[7],joydb15_2[8],joydb15_2[6:0]} : status[30] ? joystick_0_USB : joystick_1_USB;
+wire [11:0] joystick_2 =  status[31] ? joystick_0_USB : status[30] ? joystick_1_USB : joystick_2_USB;
+wire [11:0] joystick_3 =  status[31] ? joystick_1_USB : status[30] ? joystick_2_USB : joystick_3_USB;
+wire [11:0] joystick_4 =  status[31] ? joystick_2_USB : status[30] ? joystick_3_USB : joystick_4_USB;
+
+
+reg [15:0] joydb15_1,joydb15_2;
+joy_db15 joy_db15
+(
+  .clk       ( clk_sys   ), //48MHz
+  .JOY_CLK   ( JOY_CLK   ),
+  .JOY_DATA  ( JOY_DATA  ),
+  .JOY_LOAD  ( JOY_LOAD  ),
+  .joystick1 ( joydb15_1 ),
+  .joystick2 ( joydb15_2 )	  
+);
 
 hps_io #(.STRLEN($size(CONF_STR)>>3), .WIDE(1)) hps_io
 (
@@ -264,11 +291,12 @@ hps_io #(.STRLEN($size(CONF_STR)>>3), .WIDE(1)) hps_io
 	.img_readonly(img_readonly),
 	.img_size(img_size),
 
-	.joystick_0(joystick_0),
-	.joystick_1(joystick_1),
-	.joystick_2(joystick_2),
-	.joystick_3(joystick_3),
-	.joystick_4(joystick_4)
+	.joy_raw(joydb15_1[5:0]),
+	.joystick_0(joystick_0_USB),
+	.joystick_1(joystick_1_USB),
+	.joystick_2(joystick_2_USB),
+	.joystick_3(joystick_3_USB),
+	.joystick_4(joystick_4_USB)
 );
 
 wire [23:0] audio_l, audio_r;
