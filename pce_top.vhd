@@ -46,6 +46,10 @@ entity pce_top is
 		JOY4 		   : in  std_logic_vector(11 downto 0);
 		JOY5 		   : in  std_logic_vector(11 downto 0);
 
+		JOYRAW_ENA   : out  std_logic;
+		JOYRAW_CLK   : out  std_logic;
+		JOYRAW_DIN	 : in  std_logic_vector(3 downto 0);
+		
 		ReducedVBL	: in  std_logic;
 		VIDEO_R		: out std_logic_vector(2 downto 0);
 		VIDEO_G		: out std_logic_vector(2 downto 0);
@@ -77,6 +81,8 @@ signal CPU_RAM_SEL_N	: std_logic;
 signal CPU_BRM_SEL_N	: std_logic;
 signal CPU_IO_DI		: std_logic_vector(7 downto 0);
 signal CPU_IO_DO		: std_logic_vector(7 downto 0);
+signal CPU_IO_DI_RAW	: std_logic_vector(7 downto 0);
+signal CPU_IO_DI_EMU	: std_logic_vector(7 downto 0);
 
 signal CPU_VDC0_SEL_N: std_logic;
 signal CPU_VDC1_SEL_N: std_logic;
@@ -423,7 +429,11 @@ BRM_WE <= CPU_CLKEN and not CPU_BRM_SEL_N and not CPU_WR_N;
 
 -- I/O Port
 CPU_IO_DI(7 downto 4) <= "1011"; -- No CD-Rom unit, TGFX-16
-CPU_IO_DI(3 downto 0) <= 
+CPU_IO_DI(3 downto 0) <= JOYRAW_DIN;
+JOYRAW_ENA <= CPU_IO_DO(1); 
+JOYRAW_CLK <= CPU_IO_DO(0);
+
+CPU_IO_DI_EMU(3 downto 0) <= 
 	     "0000"            when CPU_IO_DO(1) = '1' or  (CPU_IO_DO(0) = '1'  and gamepad_nibble = '1')
 	else joy1( 7 downto 4) when CPU_IO_DO(0) = '0' and gamepad_port = 0 and gamepad_nibble = '0'
 	else joy1( 3 downto 0) when CPU_IO_DO(0) = '1' and gamepad_port = 0 and gamepad_nibble = '0'

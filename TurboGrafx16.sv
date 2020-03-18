@@ -134,7 +134,11 @@ localparam SP64     = 1'b0;
 `endif
 
 assign ADC_BUS  = 'Z;
-assign USER_OUT = '1;
+
+wire JOYRAW_CLK,JOYRAW_ENA;
+wire JOYRAW_SPLIT = 1'b1;
+assign USER_OUT = { JOYRAW_SPLIT,1'b1,JOYRAW_ENA,1'b1,JOYRAW_CLK,2'b11 };//'1;
+wire [3:0] JOYRAW_DIN = {USER_IN[3],USER_IN[5],USER_IN[0],USER_IN[1]};
 assign VGA_F1 = 0;
 assign {UART_RTS, UART_TXD, UART_DTR} = 0;
 assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
@@ -320,7 +324,11 @@ pce_top #(MAX_SPPL) pce_top
 	.JOY3(~{joystick_2[11:4], joystick_2[1], joystick_2[2], joystick_2[0], joystick_2[3]}),
 	.JOY4(~{joystick_3[11:4], joystick_3[1], joystick_3[2], joystick_3[0], joystick_3[3]}),
 	.JOY5(~{joystick_4[11:4], joystick_4[1], joystick_4[2], joystick_4[0], joystick_4[3]}),
-
+	
+	.JOYRAW_ENA(JOYRAW_ENA),
+	.JOYRAW_CLK(JOYRAW_CLK),
+	.JOYRAW_DIN(JOYRAW_DIN),
+	
 	.ReducedVBL(status[17]),
 	.VIDEO_R(r),
 	.VIDEO_G(g),
