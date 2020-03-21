@@ -165,6 +165,7 @@ parameter CONF_STR = {
 	"D0ON,Autosave,OFF,ON;",
 	"D0RC,Format Save;",
 	"-;",
+	"OD,Serial,OFF,SNAC;",
 	"O1,Aspect ratio,4:3,16:9;",
 	"O8A,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
 	"OH,Vertical blank,Normal,Reduced;",
@@ -325,6 +326,7 @@ pce_top #(MAX_SPPL) pce_top
 	.JOY4(~{joystick_3[11:4], joystick_3[1], joystick_3[2], joystick_3[0], joystick_3[3]}),
 	.JOY5(~{joystick_4[11:4], joystick_4[1], joystick_4[2], joystick_4[0], joystick_4[3]}),
 	
+	.JOYRAW_DIP(status[13]),
 	.JOYRAW_ENA(JOYRAW_ENA),
 	.JOYRAW_CLK(JOYRAW_CLK),
 	.JOYRAW_DIN(JOYRAW_DIN),
