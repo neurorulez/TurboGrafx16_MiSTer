@@ -148,8 +148,8 @@ assign LED_DISK  = 0;
 assign LED_POWER = 0;
 assign BUTTONS   = osd_btn;
 
-assign VIDEO_ARX = status[1] ? 8'd16 : 8'd4;
-assign VIDEO_ARY = status[1] ? 8'd9  : 8'd3; 
+assign VIDEO_ARX = status[1] ? 8'd16 : overscan ? 8'd53 : 8'd47;
+assign VIDEO_ARY = status[1] ? 8'd9  : overscan ? 8'd40 : 8'd37;
 
 `include "build_id.v" 
 parameter CONF_STR = {
@@ -168,7 +168,7 @@ parameter CONF_STR = {
 	"OD,Serial,OFF,SNAC;",
 	"O1,Aspect ratio,4:3,16:9;",
 	"O8A,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
-	"OH,Vertical blank,Normal,Reduced;",
+	"OH,Overscan,On,Off;",
 `ifdef USE_SP64
 	"OB,Sprites per line,Std(16),All(64);",
 `endif
@@ -288,6 +288,8 @@ wire ce_rom;
 reg use_sdr = 0;
 always @(posedge clk_ram) if(rom_rd) use_sdr <= |sdram_sz[14:0]; //status[6];
 
+wire overscan = ~status[17];
+
 pce_top #(MAX_SPPL) pce_top
 (
 	.RESET(reset|cart_download),
@@ -331,7 +333,8 @@ pce_top #(MAX_SPPL) pce_top
 	.JOYRAW_CLK(JOYRAW_CLK),
 	.JOYRAW_DIN(JOYRAW_DIN),
 	
-	.ReducedVBL(status[17]),
+	.ReducedVBL(~overscan),
+	
 	.VIDEO_R(r),
 	.VIDEO_G(g),
 	.VIDEO_B(b),
