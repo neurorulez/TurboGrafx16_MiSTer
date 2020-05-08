@@ -428,7 +428,6 @@ BRM_WE <= CPU_CLKEN and not CPU_BRM_SEL_N and not CPU_WR_N;
 
 -- I/O Port
 CPU_IO_DI(7 downto 4) <= "1011"; -- No CD-Rom unit, TGFX-16
---CPU_IO_DI(3 downto 0) <= JOYRAW_DIN; --Directo sin USBs
 
 JOYRAW_ENA <= CPU_IO_DO(1) when JOYRAW_DIP = '1' else '1';
 JOYRAW_CLK <= CPU_IO_DO(0) when JOYRAW_DIP = '1' else '1';
